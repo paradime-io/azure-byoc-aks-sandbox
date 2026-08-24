@@ -68,11 +68,13 @@ module "aks" {
       # (AvailabilityZoneNotSupported), while the default_node_pool and
       # azurerm_kubernetes_cluster_node_pool zonal creates succeed. Regional
       # allocation reaches the zone-3 capacity regardless.
-      enable_auto_scaling         = true
-      min_count                   = var.node_min_count
-      max_count                   = var.node_max_count
-      os_disk_size_gb             = var.node_os_disk_size_gb
-      vnet_subnet_id              = data.azurerm_subnet.existing.id
+      enable_auto_scaling = true
+      min_count           = var.node_min_count
+      max_count           = var.node_max_count
+      os_disk_size_gb     = var.node_os_disk_size_gb
+      # Subnet 2: private subnet 1 is IP-exhausted (Azure CNI pre-allocates
+      # max_pods+1 per node) — rotations of this pool must fit somewhere.
+      vnet_subnet_id              = data.azurerm_subnet.paradime_private_2.id
       create_before_destroy       = true
       temporary_name_for_rotation = "${substr(var.nuon_id, 1, 7)}temp"
     }
