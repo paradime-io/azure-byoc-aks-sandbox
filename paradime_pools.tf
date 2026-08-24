@@ -74,7 +74,10 @@ resource "azurerm_kubernetes_cluster_node_pool" "paradime" {
   # Zone 3, not 1: Arm v6 capacity in uksouth is subscription-restricted to
   # zone 3 on the paradime-byoc subscription (zones 1,2 report
   # NotAvailableForSubscription). Re-check per subscription/region.
-  zones = try(each.value.zones, ["3"])
+  # No explicit zones — the cluster rejects zonal pools ("supported zones: ''");
+  # regional allocation reaches zone-3 capacity. A per-pool zones key still
+  # overrides if a future cluster supports zonal pins.
+  zones = try(each.value.zones, null)
 
   # NAP is mutually exclusive with the cluster autoscaler on node pools:
   # under enable_nap these pools run at a fixed node_count instead.
