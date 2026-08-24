@@ -15,3 +15,16 @@ variable "node_pools_json" {
     error_message = "node_pools_json must be empty or a valid JSON object."
   }
 }
+
+
+variable "system_vm_size" {
+  type        = string
+  default     = "Standard_D2lds_v6"
+  description = "System (agents) pool VM size. Dlds_v6 is the only x86 family with both granted quota and deployable capacity on the paradime-byoc subscription in uksouth."
+}
+
+variable "system_pool_zones" {
+  type        = list(string)
+  default     = ["3"]
+  description = "Zones for the system and default x86 pools. Dlds_v6 capacity in uksouth is zone-3-only for this subscription."
+}
