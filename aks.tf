@@ -59,29 +59,13 @@ module "aks" {
     "${azurerm_container_registry.acr.name}" = azurerm_container_registry.acr.id
   }
 
-  node_pools = var.enable_nap ? {} : {
-    "default" = {
-      name    = "default"
-      vm_size = var.vm_size
-      # Deliberately zoneless: the module's extra-node-pool path serializes a
-      # singular agentPoolProfile.availabilityZone that AKS rejects
-      # (AvailabilityZoneNotSupported), while the default_node_pool and
-      # azurerm_kubernetes_cluster_node_pool zonal creates succeed. Regional
-      # allocation reaches the zone-3 capacity regardless.
-      enable_auto_scaling = true
-      min_count           = var.node_min_count
-      max_count           = var.node_max_count
-      os_disk_size_gb     = var.node_os_disk_size_gb
-      # Subnet 2: private subnet 1 is IP-exhausted (Azure CNI pre-allocates
-      # max_pods+1 per node) — rotations of this pool must fit somewhere.
-      vnet_subnet_id              = data.azurerm_subnet.paradime_private_2.id
-      create_before_destroy       = true
-      temporary_name_for_rotation = "${substr(var.nuon_id, 1, 7)}temp"
-    }
-  }
+  # No extra x86 user pool: minimal-x86 topology — AKS system pods live on the
+  # "agents" system pool, platform charts on the tainted platform-arm pool,
+  # app workloads on the env-tainted Arm pools. The module's create_before_
+  # destroy naming rotated this pool on EVERY apply, and its temp pool always
+  # lands in the (IP-exhausted) default subnet — dropping the pool removes the
+  # churn and the last non-system x86 spend.
+  node_pools = {}
 
-  # Unconditional: the Paradime platform depends on Workload Identity
-  # (vault Key Vault seal, cert-manager DNS-01, Blob SAS) regardless of NAP.
-  # Upstream gates this on enable_nap, which silently disables the webhook.
   workload_identity_enabled = true
 }
