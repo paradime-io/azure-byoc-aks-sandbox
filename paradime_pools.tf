@@ -19,25 +19,25 @@ locals {
   # (pool name is derived from it — see name below).
   paradime_default_node_pools = {
     "worker-arm" = {
-      vm_size   = "Standard_D4ps_v5"
+      vm_size   = "Standard_D4ps_v6"
       disk_size = 50
       min_size  = 1
       max_size  = 4
     }
     "cronjobs-arm" = {
-      vm_size   = "Standard_D2ps_v5"
+      vm_size   = "Standard_D2ps_v6"
       disk_size = 25
       min_size  = 1
       max_size  = 3
     }
     "theia-arm" = {
-      vm_size   = "Standard_D2ps_v5"
+      vm_size   = "Standard_D2ps_v6"
       disk_size = 50
       min_size  = 1
       max_size  = 4
     }
     "scheduler-arm" = {
-      vm_size   = "Standard_D2ps_v5"
+      vm_size   = "Standard_D2ps_v6"
       disk_size = 75
       min_size  = 1
       max_size  = 3
@@ -65,13 +65,16 @@ resource "azurerm_kubernetes_cluster_node_pool" "paradime" {
   kubernetes_cluster_id = module.aks.aks_id
   mode                  = "User"
 
-  vm_size         = try(each.value.vm_size, "Standard_D2ps_v5")
+  vm_size         = try(each.value.vm_size, "Standard_D2ps_v6")
   os_disk_size_gb = try(each.value.disk_size, 50)
   os_sku          = try(each.value.os_sku, "Ubuntu") # matches upstream default pool
   vnet_subnet_id  = data.azurerm_subnet.existing.id
 
   # Single zone by default; a per-pool zones key overrides for multi-zone.
-  zones = try(each.value.zones, ["1"])
+  # Zone 3, not 1: Arm v6 capacity in uksouth is subscription-restricted to
+  # zone 3 on the paradime-byoc subscription (zones 1,2 report
+  # NotAvailableForSubscription). Re-check per subscription/region.
+  zones = try(each.value.zones, ["3"])
 
   # NAP is mutually exclusive with the cluster autoscaler on node pools:
   # under enable_nap these pools run at a fixed node_count instead.
