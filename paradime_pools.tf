@@ -68,7 +68,10 @@ resource "azurerm_kubernetes_cluster_node_pool" "paradime" {
   vm_size         = try(each.value.vm_size, "Standard_D2ps_v6")
   os_disk_size_gb = try(each.value.disk_size, 50)
   os_sku          = try(each.value.os_sku, "Ubuntu") # matches upstream default pool
-  vnet_subnet_id  = data.azurerm_subnet.existing.id
+  # subnet_index 1 escapes the near-full default subnet (paradime_subnets.tf):
+  # Azure CNI pre-allocates max_pods+1 IPs per node per subnet.
+  vnet_subnet_id = try(each.value.subnet_index, 0) == 1 ? data.azurerm_subnet.paradime_private_2.id : data.azurerm_subnet.existing.id
+  max_pods       = try(each.value.max_pods, null)
 
   # Single zone by default; a per-pool zones key overrides for multi-zone.
   # Zone 3, not 1: Arm v6 capacity in uksouth is subscription-restricted to
