@@ -26,7 +26,7 @@ locals {
     }
     "cronjobs-arm" = {
       vm_size   = "Standard_D2ps_v6"
-      disk_size = 25
+      disk_size = 30 # AKS floor: os disks must be >= 30GB
       min_size  = 1
       max_size  = 3
     }
