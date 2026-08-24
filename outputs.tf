@@ -3,6 +3,9 @@ output "vnet" {
     id         = data.azurerm_virtual_network.existing.id
     name       = data.azurerm_virtual_network.existing.name
     subnet_ids = [data.azurerm_subnet.existing.id]
+    # Paradime fork: subnets the platform module consumes (paradime_subnets.tf).
+    db_subnet_id               = azurerm_subnet.paradime_db.id
+    private_endpoint_subnet_id = azurerm_subnet.paradime_private_endpoints.id
   }
   description = "A map of vnet attributes: name, subnet_ids."
 }
