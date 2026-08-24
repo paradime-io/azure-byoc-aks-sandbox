@@ -56,3 +56,12 @@ output "private_endpoint_subnet_id" {
   value       = azurerm_subnet.paradime_private_endpoints.id
   description = "Subnet for the platform module's private endpoints (Redis, Files, Blob)."
 }
+
+# Second private subnet for IP-hungry additions: Azure CNI pre-allocates
+# max_pods+1 IPs per node, and the upstream sandbox pins every pool into
+# private subnet [0] (a /24 = 251 IPs) — near-full with the app pools.
+data "azurerm_subnet" "paradime_private_2" {
+  name                 = local.private_subnet_name_list[1]
+  virtual_network_name = data.azurerm_virtual_network.existing.name
+  resource_group_name  = data.azurerm_resource_group.rg.name
+}
