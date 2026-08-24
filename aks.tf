@@ -61,9 +61,13 @@ module "aks" {
 
   node_pools = var.enable_nap ? {} : {
     "default" = {
-      name                        = "default"
-      vm_size                     = var.vm_size
-      zones                       = var.system_pool_zones
+      name    = "default"
+      vm_size = var.vm_size
+      # Deliberately zoneless: the module's extra-node-pool path serializes a
+      # singular agentPoolProfile.availabilityZone that AKS rejects
+      # (AvailabilityZoneNotSupported), while the default_node_pool and
+      # azurerm_kubernetes_cluster_node_pool zonal creates succeed. Regional
+      # allocation reaches the zone-3 capacity regardless.
       enable_auto_scaling         = true
       min_count                   = var.node_min_count
       max_count                   = var.node_max_count
