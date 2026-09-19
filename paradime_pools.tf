@@ -73,11 +73,11 @@ resource "azurerm_kubernetes_cluster_node_pool" "paradime" {
   vnet_subnet_id = try(each.value.subnet_index, 0) == 1 ? data.azurerm_subnet.paradime_private_2.id : data.azurerm_subnet.existing.id
   max_pods       = try(each.value.max_pods, null)
 
-  # Single zone by default; a per-pool zones key overrides for multi-zone.
-  # Zone 3, not 1: Arm v6 capacity in uksouth is subscription-restricted to
-  # zone 3 on the paradime-byoc subscription (zones 1,2 report
-  # NotAvailableForSubscription). Re-check per subscription/region.
-  zones = try(each.value.zones, ["3"])
+  # REGIONAL by default (no zones); a per-pool zones key opts into zonal.
+  # Azure support (ticket 2609020050002003): the v6 SKU restriction on the
+  # paradime-byoc subscription is ZONAL-scoped — zonal requests in zones 1/2
+  # report NotAvailableForSubscription, regional deployments are allowed.
+  zones = try(each.value.zones, [])
 
   # NAP is mutually exclusive with the cluster autoscaler on node pools:
   # under enable_nap these pools run at a fixed node_count instead.

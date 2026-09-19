@@ -9,17 +9,20 @@ module "aks" {
   resource_group_name       = data.azurerm_resource_group.rg.name
   kubernetes_version        = var.cluster_version
   automatic_channel_upgrade = "patch"
-  # System pool pinned to the SKU/zone with granted quota AND real capacity on
-  # the paradime-byoc subscription (D*s_v3/v5 preflight-fail on capacity in
-  # uksouth; Dlds_v6 is zone-3-only).
+  # System pool on the SKU with granted quota (D*s_v3/v5 are fully
+  # location-restricted for the paradime-byoc subscription in uksouth; only
+  # v6 families are offered, and only for regional/zone-3 requests).
   agents_size               = var.system_vm_size
   agents_availability_zones = var.system_pool_zones
   agents_count              = var.enable_nap ? 1 : null
-  agents_max_count          = var.enable_nap ? null : 1
-  agents_max_pods           = 100
-  agents_min_count          = var.enable_nap ? null : 1
-  agents_pool_max_surge     = 1
-  agents_pool_name          = "agents"
+  # max 4, not 1: the LGTM monitoring pods carry no tolerations so they can
+  # only land on this untainted pool — one 2-vCPU node cannot fit
+  # mimir/loki/tempo (found live on azure-dev-2, hand-bumped there).
+  agents_max_count      = var.enable_nap ? null : 4
+  agents_max_pods       = 100
+  agents_min_count      = var.enable_nap ? null : 1
+  agents_pool_max_surge = 1
+  agents_pool_name      = "agents"
   agents_pool_linux_os_configs = [
     {
       transparent_huge_page_enabled = "always"

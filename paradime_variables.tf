@@ -25,6 +25,6 @@ variable "system_vm_size" {
 
 variable "system_pool_zones" {
   type        = list(string)
-  default     = ["3"]
-  description = "Zones for the system and default x86 pools. Dlds_v6 capacity in uksouth is zone-3-only for this subscription."
+  default     = []
+  description = "Zones for the system and default x86 pools. Empty = regional deployment: per Azure support the v6 SKU restriction on this subscription is zonal-scoped (zones 1/2 blocked), so regional requests avoid it entirely."
 }
