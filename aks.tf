@@ -18,8 +18,14 @@ module "aks" {
   # max 4, not 1: the LGTM monitoring pods carry no tolerations so they can
   # only land on this untainted pool — one 2-vCPU node cannot fit
   # mimir/loki/tempo (found live on azure-dev-2, hand-bumped there).
-  agents_max_count      = var.enable_nap ? null : 4
-  agents_max_pods       = 100
+  agents_max_count = var.enable_nap ? null : 4
+  # 30, not upstream's 100: Azure CNI pre-allocates maxPods+1 subnet IPs per
+  # node, so one 100-pod node reserves 101 IPs of a /24 and the pool can never
+  # scale (autoscaler backoff, found live on azure-dev-3). SaaS has no maxPods
+  # knob at all (EKS ENI-derived); 30 matches every other pool here.
+  # NOTE: maxPods is immutable — existing clusters rotate the system pool on
+  # their next sandbox apply.
+  agents_max_pods       = 30
   agents_min_count      = var.enable_nap ? null : 1
   agents_pool_max_surge = 1
   agents_pool_name      = "agents"
